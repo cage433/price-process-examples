@@ -47,10 +47,18 @@ class ForwardPriceCurve:
             [fp for fp in self.forward_prices if fp.day >= boundary_date]
         )
     
+    def add_price_for_date(self, delivery_date):
+        if delivery_date in self.delivery_days:
+            return self
+        return ForwardPriceCurve(
+            self.observation_date,
+            sorted(
+                self.forward_prices + [ForwardPrice(delivery_date, self.interpolated_price(delivery_date))],
+                key=lambda fp:fp.day
+            )
+        )
     
-    def max_price(self):
-        return max(self._ys)
-    
+   
     @staticmethod
     def from_market_data(observation_date: date, prices: Dict[date, Number]):
         """
