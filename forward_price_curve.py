@@ -2,8 +2,6 @@ from datetime import date, timedelta
 from numbers import Number
 from typing import List, Dict
 import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.dates import DateFormatter
 from sample_ttf_prices import TTF_28_JAN_PRICES
 
 def time_between(d0: date, d1: date):
@@ -78,31 +76,5 @@ class ForwardPriceCurve:
     def jan_28_ttf_curve():
         return ForwardPriceCurve.from_market_data(date(2022, 1, 28), TTF_28_JAN_PRICES)
     
-    def draw_curve(self, initial_date, ylim):
-        xs = [self.observation_date + timedelta(i) for i in range(30)]
-        xs += [self.observation_date + timedelta(i * 10) for i in range(100)]
-        xs.append(self.last_delivery_day)
-        xs = [d for d in xs if d <= self.last_delivery_day]
-        xs = sorted(list(set(xs)))
-            
-        ys = [self.interpolated_price(d) for d in xs]
-        xtick_dates = [
-            d 
-            for y in range(2022, 2027) 
-            for d in [date(y, 1, 1), date(y, 7, 1)] 
-            if initial_date <= d and d <= self.last_delivery_day
-        ]
-        plt.rcParams['figure.figsize'] = [9, 6]
-        fig, ax = plt.subplots()
-        line, = ax.plot([])
-        ax.xaxis.set_major_formatter(DateFormatter("%b/%y"))
-        plt.xticks(xtick_dates)
-        ax.set_xlim(initial_date, self.last_delivery_day)
-        ax.set_ylim(0, ylim)
-        formatted_observation_date = self.observation_date.strftime("%d %b %y")
-        ax.set_xlabel(f"Observation Date {formatted_observation_date}")
-        ax.set_ylabel("TTF Price")
-        line.set_data(xs, ys)
-        plt.show()
 
         
