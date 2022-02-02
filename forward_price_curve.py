@@ -4,6 +4,7 @@ from typing import List, Dict
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.dates import DateFormatter
+from sample_ttf_prices import TTF_28_JAN_PRICES
 
 def time_between(d0: date, d1: date):
     return (d1 - d0).days / 365.0
@@ -48,6 +49,10 @@ class ForwardPriceCurve:
             [fp for fp in self.forward_prices if fp.day >= boundary_date]
         )
     
+    
+    def max_price(self):
+        return max(self._ys)
+    
     @staticmethod
     def from_market_data(observation_date: date, prices: Dict[date, Number]):
         """
@@ -69,7 +74,11 @@ class ForwardPriceCurve:
             forward_prices = [ForwardPrice(day=d, price = coarse_fpc.interpolated_price(d)) for d in finer_dates]
         )
     
-    def draw_curve(self, initial_date):
+    @staticmethod
+    def jan_28_ttf_curve():
+        return ForwardPriceCurve.from_market_data(date(2022, 1, 28), TTF_28_JAN_PRICES)
+    
+    def draw_curve(self, initial_date, ylim):
         xs = [self.observation_date + timedelta(i) for i in range(30)]
         xs += [self.observation_date + timedelta(i * 10) for i in range(100)]
         xs.append(self.last_delivery_day)
@@ -89,7 +98,7 @@ class ForwardPriceCurve:
         ax.xaxis.set_major_formatter(DateFormatter("%b/%y"))
         plt.xticks(xtick_dates)
         ax.set_xlim(initial_date, self.last_delivery_day)
-        ax.set_ylim(0, 200)
+        ax.set_ylim(0, ylim)
         formatted_observation_date = self.observation_date.strftime("%d %b %y")
         ax.set_xlabel(f"Observation Date {formatted_observation_date}")
         ax.set_ylabel("TTF Price")
@@ -97,14 +106,3 @@ class ForwardPriceCurve:
         plt.show()
 
         
-def display_evolving_forward_prices(fpc, process, observation_dates):
-    """
-    Displays a pyplot showing a price curve evolving over time according
-    to the given process
-    """
-    initial_observation_date = fpc.observation_date
-    for d in observation_dates:
-        fpc.draw_curve(initial_observation_date)
-        clear_output(wait=True)
-        sleep(0.5)
-        fpc = process.evolve(fpc, d)
